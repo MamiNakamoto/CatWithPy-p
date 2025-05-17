@@ -85,24 +85,78 @@ def train_yolov5():
 def update_yolov5():
     print("\n[2] Yeni verilerle modeli güncelleme başlatılıyor...")
     runs_path = Path("yolov5/runs/train")
+    
+    # Önceki eğitim sonuçlarını kontrol et
     exp_list = sorted(runs_path.glob("exp*"), key=os.path.getmtime)
     if not exp_list:
-        print("[HATA] Güncelleme için önce bir eğitim yapılmalı.")
+        print("[HATA] Önceki eğitim sonuçları bulunamadı. Önce ilk eğitimi yapmalısın.")
         return
 
     latest_exp = exp_list[-1]
-    best_weights = latest_exp / "yolov5/runs/exp*/weights/best.pt"
+    best_weights = latest_exp / "weights/best.pt"
+    
+    if not best_weights.exists():
+        print(f"[HATA] Önceki eğitim ağırlıkları bulunamadı: {best_weights}")
+        return
 
+    print(f"\nÖnceki eğitim sonucu kullanılıyor: {latest_exp.name}")
+    print(f"Ağırlık dosyası: {best_weights}")
+
+    # Yeni eğitim için parametreler
     command = [
         "python", "yolov5/train.py",
         "--img", "640",
         "--batch", "16",
-        "--epochs", "20",
+        "--epochs", "20",  # Güncelleme için daha az epoch
         "--data", "data.yaml",
-        "--weights", str(best_weights)
+        "--weights", str(best_weights),  # Önceki eğitimin ağırlıklarını kullan
+        "--resume",  # Eğitimi devam ettir
+        "--name", f"update_{len(exp_list)}",  # Yeni bir isim ver
+        "--exist-ok"  # Aynı isimli klasör varsa üzerine yaz
     ]
-    subprocess.run(command)
-    print("[2] Model başarıyla güncellendi!")
+
+    try:
+        print("\nGüncelleme başlatılıyor...")
+        process = subprocess.Popen(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            universal_newlines=True
+        )
+        
+        # Çıktıyı gerçek zamanlı göster
+        while True:
+            output = process.stdout.readline()
+            if output == '' and process.poll() is not None:
+                break
+            if output:
+                print(output.strip())
+        
+        # Hata varsa göster
+        stderr = process.stderr.read()
+        if stderr:
+            print(f"\n[HATA] Güncelleme sırasında hata oluştu:\n{stderr}")
+            return
+            
+        if process.returncode != 0:
+            print(f"\n[HATA] Güncelleme başarısız oldu. Çıkış kodu: {process.returncode}")
+            return
+            
+        print("\n[2] ✅ Model başarıyla güncellendi!")
+        
+        # Güncelleme sonrası kontrol
+        print("\nGüncelleme sonrası kontrol:")
+        new_exp_folders = list(runs_path.glob("update_*"))
+        if new_exp_folders:
+            latest_update = max(new_exp_folders, key=os.path.getmtime)
+            print(f"Yeni güncelleme klasörü: {latest_update.name}")
+            new_weights = latest_update / "weights/best.pt"
+            print(f"Yeni ağırlık dosyası: {'✅ Mevcut' if new_weights.exists() else '❌ Eksik'}")
+        else:
+            print("❌ Güncelleme klasörü bulunamadı!")
+            
+    except Exception as e:
+        print(f"\n[HATA] Beklenmeyen bir hata oluştu: {str(e)}")
 
 def detect_with_model():
     test_path = input("\n[3] Test etmek istediğin resim veya video dosyasının yolunu gir: ")
