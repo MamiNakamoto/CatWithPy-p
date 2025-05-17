@@ -1,0 +1,5 @@
+train: C:/Users/GAMING-PC/Desktop/CatWithPy/dataset/images/train
+val: C:/Users/GAMING-PC/Desktop/CatWithPy/dataset/images/val
+
+nc: 1
+names: ['cat']
