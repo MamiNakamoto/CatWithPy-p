@@ -84,23 +84,31 @@ def train_yolov5():
 
 def update_yolov5():
     print("\n[2] Yeni verilerle modeli güncelleme başlatılıyor...")
+    
+    # Önceki eğitim ağırlıklarını kontrol et
     runs_path = Path("yolov5/runs/train")
     
-    # Önceki eğitim sonuçlarını kontrol et
-    exp_list = sorted(runs_path.glob("exp*"), key=os.path.getmtime)
-    if not exp_list:
-        print("[HATA] Önceki eğitim sonuçları bulunamadı. Önce ilk eğitimi yapmalısın.")
-        return
-
-    latest_exp = exp_list[-1]
-    best_weights = latest_exp / "weights/best.pt"
+    # Önce update_ klasörlerini kontrol et
+    update_folders = sorted(runs_path.glob("update_*"), key=os.path.getmtime)
+    if update_folders:
+        # En son güncelleme klasörünü kullan
+        latest_update = update_folders[-1]
+        best_weights = latest_update / "weights/best.pt"
+        print(f"\nÖnceki güncelleme sonucu kullanılıyor: {latest_update.name}")
+    else:
+        # Eğer güncelleme klasörü yoksa, orijinal exp2'yi kullan
+        best_weights = runs_path / "exp2/weights/best.pt"
+        print(f"\nİlk eğitim sonucu kullanılıyor: exp2")
     
     if not best_weights.exists():
         print(f"[HATA] Önceki eğitim ağırlıkları bulunamadı: {best_weights}")
         return
 
-    print(f"\nÖnceki eğitim sonucu kullanılıyor: {latest_exp.name}")
     print(f"Ağırlık dosyası: {best_weights}")
+
+    # Yeni güncelleme için klasör adını belirle
+    update_count = len(update_folders) + 1
+    update_name = f"update_exp2_{update_count}"
 
     # Yeni eğitim için parametreler
     command = [
@@ -111,7 +119,7 @@ def update_yolov5():
         "--data", "data.yaml",
         "--weights", str(best_weights),  # Önceki eğitimin ağırlıklarını kullan
         "--resume",  # Eğitimi devam ettir
-        "--name", f"update_{len(exp_list)}",  # Yeni bir isim ver
+        "--name", update_name,  # Yeni bir isim ver
         "--exist-ok"  # Aynı isimli klasör varsa üzerine yaz
     ]
 
@@ -146,11 +154,10 @@ def update_yolov5():
         
         # Güncelleme sonrası kontrol
         print("\nGüncelleme sonrası kontrol:")
-        new_exp_folders = list(runs_path.glob("update_*"))
-        if new_exp_folders:
-            latest_update = max(new_exp_folders, key=os.path.getmtime)
-            print(f"Yeni güncelleme klasörü: {latest_update.name}")
-            new_weights = latest_update / "weights/best.pt"
+        update_folder = runs_path / update_name
+        if update_folder.exists():
+            print(f"Yeni güncelleme klasörü: {update_name}")
+            new_weights = update_folder / "weights/best.pt"
             print(f"Yeni ağırlık dosyası: {'✅ Mevcut' if new_weights.exists() else '❌ Eksik'}")
         else:
             print("❌ Güncelleme klasörü bulunamadı!")
