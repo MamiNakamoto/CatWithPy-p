@@ -31,7 +31,7 @@ def train_yolov5():
     print(f"yolov5/runs/train klasörü: {'✅ Mevcut' if Path('yolov5/runs/train').exists() else '❌ Eksik'}")
     
     command = [
-        "python", "yolov5/train.py",
+        "python", "CatWithPy-p/yolov5/train.py",
         "--img", "640",
         "--batch", "16",
         "--epochs", "50",
@@ -111,7 +111,7 @@ def update_yolov5():
 
     # Yeni eğitim için parametreler
     command = [
-        "python", "yolov5/train.py",
+        "python", "CatWithPy-p/yolov5/train.py",
         "--img", "640",
         "--batch", "16",
         "--epochs", "20",  # Güncelleme için daha az epoch
