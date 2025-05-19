@@ -86,7 +86,7 @@ def update_yolov5():
     print("\n[2] Yeni verilerle modeli güncelleme başlatılıyor...")
     
     # Önceki eğitim ağırlıklarını kontrol et
-    runs_path = Path("yolov5/runs/train")
+    runs_path = Path("CatWithPy-p/yolov5/runs/train")
     
     # Tüm eğitim klasörlerini kontrol et
     exp_folders = list(runs_path.glob("exp*"))
