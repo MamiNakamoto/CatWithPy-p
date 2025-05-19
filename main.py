@@ -88,27 +88,26 @@ def update_yolov5():
     # Önceki eğitim ağırlıklarını kontrol et
     runs_path = Path("yolov5/runs/train")
     
-    # Önce update_ klasörlerini kontrol et
-    update_folders = sorted(runs_path.glob("update_*"), key=os.path.getmtime)
-    if update_folders:
-        # En son güncelleme klasörünü kullan
-        latest_update = update_folders[-1]
-        best_weights = latest_update / "weights/best.pt"
-        print(f"\nÖnceki güncelleme sonucu kullanılıyor: {latest_update.name}")
-    else:
-        # Eğer güncelleme klasörü yoksa, orijinal exp2'yi kullan
-        best_weights = runs_path / "exp2/weights/best.pt"
-        print(f"\nİlk eğitim sonucu kullanılıyor: exp2")
+    # Tüm eğitim klasörlerini kontrol et
+    exp_folders = list(runs_path.glob("exp*"))
+    if not exp_folders:
+        print("[HATA] Eğitim klasörü bulunamadı. Önce ilk eğitimi yapmalısın.")
+        return
+    
+    # En son exp klasörünü bul
+    latest_exp = max(exp_folders, key=os.path.getmtime)
+    best_weights = latest_exp / "weights/best.pt"
     
     if not best_weights.exists():
         print(f"[HATA] Önceki eğitim ağırlıkları bulunamadı: {best_weights}")
         return
 
+    print(f"\nÖnceki eğitim sonucu kullanılıyor: {latest_exp.name}")
     print(f"Ağırlık dosyası: {best_weights}")
 
     # Yeni güncelleme için klasör adını belirle
-    update_count = len(update_folders) + 1
-    update_name = f"update_exp2_{update_count}"
+    update_count = len(list(runs_path.glob("update_*"))) + 1
+    update_name = f"update_{update_count}"
 
     # Yeni eğitim için parametreler
     command = [
