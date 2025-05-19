@@ -27,7 +27,7 @@ def train_yolov5():
     # Eğitim öncesi klasör yapısını kontrol et
     print("\nKlasör yapısı kontrol ediliyor...")
     print(f"YOLOv5 klasörü: {'✅ Mevcut' if Path('yolov5').exists() else '❌ Eksik'}")
-    print(f"data.yaml dosyası: {'✅ Mevcut' if Path('data.yaml').exists() else '❌ Eksik'}")
+    print(f"data.yaml dosyası: {'✅ Mevcut' if Path('CatWithPy-p/data.yaml').exists() else '❌ Eksik'}")
     print(f"yolov5/runs/train klasörü: {'✅ Mevcut' if Path('yolov5/runs/train').exists() else '❌ Eksik'}")
     
     command = [
@@ -35,7 +35,7 @@ def train_yolov5():
         "--img", "640",
         "--batch", "16",
         "--epochs", "50",
-        "--data", "data.yaml",
+        "--data", "CatWithPy-p/data.yaml",
         "--weights", "yolov5s.pt"
     ]
     
@@ -115,7 +115,7 @@ def update_yolov5():
         "--img", "640",
         "--batch", "16",
         "--epochs", "20",  # Güncelleme için daha az epoch
-        "--data", "data.yaml",
+        "--data", "CatWithPy-p/data.yaml",
         "--weights", str(best_weights),  # Önceki eğitimin ağırlıklarını kullan
         "--resume",  # Eğitimi devam ettir
         "--name", update_name,  # Yeni bir isim ver
